@@ -1,0 +1,27 @@
+{
+  "id": "ox-alpha-rewind-crash",
+  "repo": "ox-alpha",
+  "class": "crash",
+  "width": "narrow",
+  "origin": "local models evaluation / Make a Platformer Game / ox-alpha (ECHO PROTOCOL), as shipped",
+  "goal": "ECHO PROTOCOL breaks permanently the first time you use the mechanic it is named after. Move the runner for a second or two, then press R to rewind the loop. From that frame on the canvas throws every frame — \"Failed to execute 'createLinearGradient' on 'CanvasRenderingContext2D': The provided double value is non-finite\", raised while drawing an echo — and because the throw lands between a save and its restore, canvas state leaks a little more each frame until the screen is an unreadable smear. The only recovery is reloading the page. Rewind is the whole game: every door past the first sector is built around parking your past selves on pressure plates, so this blocks all progress. Make a rewind leave the game rendering normally. Do not fix it by removing or disabling the mechanic: a rewind must still record an echo, and that echo must still replay the path the player actually took.",
+  "environmentNote": "The game is plain HTML and JavaScript; open index.html to run it. It exposes its own live handles for debugging: window.OXGame is the running game and OX.debug holds the game, renderer and UI.",
+  "checks": [
+    {
+      "name": "javascript parses",
+      "command": "node",
+      "args": ["{{harness}}/tools/syntax-check.mjs"]
+    }
+  ],
+  "grader": "grade.mjs",
+  "baseline": {
+    "asShippedVerdict": "fail",
+    "asShippedDetail": "the first draw after a rewind throws the reported TypeError, and five non-finite calls reach the canvas, the first being translate(NaN, NaN)"
+  },
+  "notes": [
+    "The echo is created inside step(), after the existing echoes have been updated for that frame, and its constructor never initialises a position — only its update() does. So the new echo is drawn once with an undefined position, which reaches the renderer as NaN.",
+    "The grader reproduces the page's own loop, which re-schedules the next frame before drawing. A throw in the renderer therefore does not stop the simulation; it repeats while the game keeps stepping. Grading with a loop that stopped on the first throw would make a guard fail on the as-shipped code and misreport the defect.",
+    "Two repairs that satisfy the bug report and are rejected: never recording an echo, and recording one that never replays. Both remove the mechanic the entry is built on.",
+    "This entry ships no runnable tooling, so the agent-visible check is the harness syntax checker. It catches a broken edit and reveals nothing about the defect."
+  ]
+}

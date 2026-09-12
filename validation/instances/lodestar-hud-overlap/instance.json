@@ -1,0 +1,27 @@
+{
+  "id": "lodestar-hud-overlap",
+  "repo": "lodestar",
+  "class": "layout",
+  "width": "narrow",
+  "origin": "local models evaluation / Make a Platformer Game / qwen3.8-27b-q4 (LODESTAR), as shipped",
+  "goal": "LODESTAR's HUD draws its shard counter and its run clock on top of each other. Both belong in the panel at the top right, but they are placed so close together that the two numbers collide and render as one unreadable string — a run showing two shards at twenty-four seconds reads as 0:24857 rather than as a count and a time. It is wrong from the first frame of every level and gets worse as the clock grows a digit. Lay the panel out so the two readouts are both legible at any plausible count and time. Both must stay in that top-right panel, and both must still be shown.",
+  "environmentNote": "The game is plain HTML and JavaScript; open index.html to run it. The HUD is drawn on the canvas rather than in the DOM. The running game is exposed as window.__lodestar for debugging.",
+  "checks": [
+    {
+      "name": "javascript parses",
+      "command": "node",
+      "args": ["{{harness}}/tools/syntax-check.mjs"]
+    }
+  ],
+  "grader": "grade.mjs",
+  "baseline": {
+    "asShippedVerdict": "fail",
+    "asShippedDetail": "the shard counter and the clock overlap by 49.5px on a shared baseline, reproducing the 0:24857 smear reported in the evaluation"
+  },
+  "notes": [
+    "The counter is drawn left-aligned 64px to the left of the right-aligned clock, which is less than the width of either string, so their boxes always intersect.",
+    "Grading renders the real drawHUD against a recording canvas and turns each fillText into a box using one consistent text-width model, then looks for boxes that intersect on a shared baseline. No element is named, so any layout that separates them is accepted.",
+    "Three states are rendered, including a clock past ten minutes, so a layout that only fits the shortest string is not accepted.",
+    "Two repairs that remove the overlap and are rejected: deleting the clock, and pushing it outside the panel."
+  ]
+}

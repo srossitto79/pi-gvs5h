@@ -10,7 +10,8 @@
   "engines": { "node": ">=22.19.0" },
   "scripts": {
     "check": "tsc --noEmit",
-    "test": "node --test test/*.test.ts"
+    "test": "node --test test/*.test.ts",
+    "validate": "node validation/selftest.mjs && node validation/runner-selftest.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-tui": "*",

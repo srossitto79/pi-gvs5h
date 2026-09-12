@@ -1,0 +1,26 @@
+{
+  "id": "qwen-next-speed-cap",
+  "repo": "qwen-next",
+  "class": "numeric",
+  "width": "narrow",
+  "origin": "local models evaluation / Make a Platformer Game / qwen-next (REVERB), as shipped",
+  "goal": "REVERB's player runs far faster than the game's own configured speed. src/config.js declares the run speed the six levels were laid out around, but on flat ground the player settles at roughly three and a half times that value and is still gaining speed after three seconds. Because the levels were authored for the slower number — two-tile pits, five-tile platforms — holding the right arrow and jumping clears all six of them in under five seconds each, every one S-rated against par times of 32 to 115 seconds. Make the configured cap actually hold during normal running. The configured value is the specification, since the level geometry depends on it, so raising it to match the speed the player actually reaches is not a fix.",
+  "environmentNote": "The game is plain HTML and JavaScript at the repository root; open index.html to run it. The repository ships a level validator that runs under Node: `node tools/validate_levels.js`.",
+  "checks": [
+    {
+      "name": "level validator",
+      "command": "node",
+      "args": ["tools/validate_levels.js"]
+    }
+  ],
+  "grader": "grade.mjs",
+  "baseline": {
+    "asShippedVerdict": "fail",
+    "asShippedDetail": "peak |vx| after 0.5s is 942.7 px/s against a configured moveSpeed of 265, reproducing the 940 px/s reported in the evaluation README to within 0.3%"
+  },
+  "notes": [
+    "The defect is a decay instead of a clamp in the horizontal limiter, so speed settles where ground acceleration meets a 1.5%-per-tick decay rather than at the configured cap.",
+    "The dash is designed to exceed the cap. A repair that clamps horizontal speed after the dash has set it fixes the reported symptom exactly and still fails, because it silently destroys the dash. This is deliberate: it separates a careful fix from a careless one.",
+    "The shipped level validator passes on the as-shipped repository, so it is a fair agent-visible check: a failure means the agent broke something, not that the defect is present."
+  ]
+}

@@ -54,7 +54,7 @@ export class Ledger {
 export function createRun(goal: string): Run {
   return {
     version: 2, id: randomUUID(), goal, status: "running", phase: "plan", plan: "", notes: "",
-    tasks: [], proposals: [], steps: 0, tokens: 0, revision: 0, verifiedRevision: null,
+    tasks: [], proposals: [], steps: 0, tokens: 0, tokensByRole: {}, revision: 0, verifiedRevision: null,
     reviewedRevision: null, reviewVerdict: null, checks: [], lastSummary: "", lastTaskId: null,
     repeats: 0, failures: 0, handoff: "", reason: "", updatedAt: new Date().toISOString(),
   };
@@ -66,6 +66,7 @@ type Stored = Omit<Run, "version"> & { version: number };
 // rather than discarding a run whose edits are already on disk.
 function migrate(run: Stored): Run {
   run.proposals ??= [];
+  run.tokensByRole ??= {};
   run.reviewedRevision ??= null;
   run.reviewVerdict ??= null;
   run.lastTaskId ??= null;

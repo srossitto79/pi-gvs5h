@@ -1,0 +1,74 @@
+/* LODESTAR — page chrome. All in-game visuals are drawn on the canvas. */
+
+:root {
+  --bg: #0a0c12;
+  --amber: #ffb454;
+  --cyan: #57d8ff;
+  --ink: #e8ecf4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  overflow: hidden;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(1200px 700px at 50% 40%, #10141f 0%, #0a0c12 70%);
+}
+
+#game {
+  display: block;
+  background: #0a0c12;
+  box-shadow: 0 0 0 1px rgba(255, 180, 84, 0.08), 0 30px 80px rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+}
+
+/* ---- touch controls ---- */
+#touch {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+#touch.hidden { display: none; }
+
+.tgroup {
+  position: absolute;
+  bottom: 26px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.tgroup.left  { left: 26px; }
+.tgroup.right { right: 26px; }
+
+.tbtn {
+  pointer-events: auto;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px solid rgba(232, 236, 244, 0.35);
+  background: rgba(20, 24, 34, 0.55);
+  color: var(--ink);
+  font-size: 26px;
+  line-height: 1;
+  backdrop-filter: blur(4px);
+  -webkit-tap-highlight-color: transparent;
+}
+.tbtn:active { background: rgba(255, 180, 84, 0.35); border-color: var(--amber); }
+.tbtn.big   { width: 88px; height: 88px; }
+.tbtn.small { width: 58px; height: 58px; font-size: 22px; }

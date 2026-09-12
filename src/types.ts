@@ -36,6 +36,8 @@ export interface Run {
   proposals: string[];
   steps: number;
   tokens: number;
+  /** Usage attributed to each role, so the cost of the scaffold can be read off a run. */
+  tokensByRole: Partial<Record<Role, number>>;
   revision: number;
   verifiedRevision: number | null;
   reviewedRevision: number | null;

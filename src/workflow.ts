@@ -83,6 +83,7 @@ export async function workflow(options: WorkflowOptions): Promise<Run> {
       onProgress(`${role}${task ? `: ${task.description}` : ""}`);
       const onTokens = (tokens: number) => {
         current.tokens += tokens;
+        current.tokensByRole[role] = (current.tokensByRole[role] ?? 0) + tokens;
         if (current.tokens >= config.maxTokens) controller.abort(new Error("Token budget reached"));
       };
       let report: Report | undefined;

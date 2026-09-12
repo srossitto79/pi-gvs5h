@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>LODESTAR — a polarity platformer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="stage">
+    <canvas id="game"></canvas>
+    <div id="touch" class="hidden">
+      <div class="tgroup left">
+        <button data-k="left"  class="tbtn">&#9664;</button>
+        <button data-k="right" class="tbtn">&#9654;</button>
+      </div>
+      <div class="tgroup right">
+        <button data-k="flip"  class="tbtn small">&#8644;</button>
+        <button data-k="jump"  class="tbtn big">&#9650;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load order matters: no modules, no build step. -->
+  <script src="src/config.js"></script>
+  <script src="src/utils.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/input.js"></script>
+  <script src="src/particles.js"></script>
+  <script src="src/levels.js"></script>
+  <script src="src/entities.js"></script>
+  <script src="src/camera.js"></script>
+  <script src="src/renderer.js"></script>
+  <script src="src/ui.js"></script>
+  <script src="src/game.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>
