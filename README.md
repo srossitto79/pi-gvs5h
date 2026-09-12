@@ -1,6 +1,9 @@
 # pi-gvs5h
 
-A `/gvs` command for standard Pi. It plans a coding task, explores approaches, then alternates a fresh manager with fresh coding workers. A persistent ledger carries the plan, findings and check results between sessions. No Pi fork is required.
+pi-gvs5h is a Pi extension that brings the GVS5H idea into a practical repository workflow: it plans a coding task, explores approaches, then alternates a fresh manager with fresh coding workers while keeping a durable ledger of tasks, findings, and verification results across sessions. It is designed to work with ordinary Pi installations without forking the Pi runtime.
+
+Original GVS5H paper: [Zero-Shot Self-Orchestration with Ledger-Based Control Improves Coding in Language Models](https://github.com/slee-persis/GVS5H/tree/master/paper)
+
 
 ## Install and use
 
@@ -103,4 +106,5 @@ Pi libraries are peer dependencies, following Pi package conventions; exact deve
 ## Attribution
 
 Inspired by [GVS5H](https://github.com/slee-persis/GVS5H), especially its ledger-based self-orchestration in `codebase/v2-current/escalation/multiagent.py`, and built on [Pi](https://github.com/earendil-works/pi). This is an independent implementation for repository work, not a reproduction of GVS5H's benchmark results. No paper assets or benchmark datasets are bundled.
-Made with passion by Salvatore Rossitto srossitto. https://github.com/srossitto79
+
+Made with passion by Salvatore Rossitto https://github.com/srossitto79
