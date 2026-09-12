@@ -8,9 +8,10 @@ export class Ledger {
   constructor(cwd: string) { this.directory = join(resolve(cwd), ".pi", "gvs"); }
   async load(): Promise<Run | undefined> {
     try {
-      const run = JSON.parse(await readFile(join(this.directory, "run.json"), "utf8")) as Run;
-      if (run.version !== 1 || !Array.isArray(run.tasks) || typeof run.id !== "string") throw new Error("Invalid GVS ledger");
-      return run;
+      const run = JSON.parse(await readFile(join(this.directory, "run.json"), "utf8")) as Stored;
+      if (!Array.isArray(run.tasks) || typeof run.id !== "string") throw new Error("Invalid GVS ledger");
+      if (run.version !== 1 && run.version !== 2) throw new Error("Unsupported GVS ledger version");
+      return migrate(run);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
       throw error;
@@ -52,8 +53,25 @@ export class Ledger {
 
 export function createRun(goal: string): Run {
   return {
-    version: 1, id: randomUUID(), goal, status: "running", phase: "plan", plan: "", notes: "",
-    tasks: [], steps: 0, tokens: 0, revision: 0, verifiedRevision: null, checks: [],
-    lastSummary: "", reason: "", updatedAt: new Date().toISOString(),
+    version: 2, id: randomUUID(), goal, status: "running", phase: "plan", plan: "", notes: "",
+    tasks: [], proposals: [], steps: 0, tokens: 0, revision: 0, verifiedRevision: null,
+    reviewedRevision: null, reviewVerdict: null, checks: [], lastSummary: "", lastTaskId: null,
+    repeats: 0, failures: 0, handoff: "", reason: "", updatedAt: new Date().toISOString(),
   };
+}
+
+type Stored = Omit<Run, "version"> & { version: number };
+
+// A version 1 ledger predates curation, proposals, review and handoff. Fill the additions
+// rather than discarding a run whose edits are already on disk.
+function migrate(run: Stored): Run {
+  run.proposals ??= [];
+  run.reviewedRevision ??= null;
+  run.reviewVerdict ??= null;
+  run.lastTaskId ??= null;
+  run.repeats ??= 0;
+  run.failures ??= 0;
+  run.handoff ??= "";
+  for (const task of run.tasks) { task.attempts ??= 0; task.result ??= ""; }
+  return { ...run, version: 2 };
 }

@@ -16,7 +16,12 @@ export default function gvsExtension(pi: ExtensionAPI) {
   ));
   let active: { controller: AbortController; promise: Promise<void> } | undefined;
   const say = (text: string) => pi.sendMessage({ customType: "gvs", content: text, display: true });
-  const describe = (run: Run) => `GVS ${run.status} — ${run.goal}\n${run.reason || run.lastSummary}\nSteps: ${run.steps}; tokens: ${run.tokens}. Ledger: .pi/gvs/run.json`;
+  const describe = (run: Run) => [
+    `GVS ${run.status} — ${run.goal}`,
+    run.reason || run.lastSummary,
+    run.handoff && `**Handoff**\n\n${run.handoff}`,
+    `Steps: ${run.steps}; tokens: ${run.tokens}; recovered failures: ${run.failures}. Ledger: .pi/gvs/run.json`,
+  ].filter(Boolean).join("\n");
 
   pi.registerCommand("gvs", {
     description: "GVS workflow: <goal> | plan | status | cancel | resume | init | reset | help",
@@ -28,7 +33,8 @@ export default function gvsExtension(pi: ExtensionAPI) {
       }
       if (text === "plan") {
         const run = await new Ledger(ctx.cwd).load();
-        say(run?.plan ? `**GVS plan**\n\n${run.plan}\n\n${run.tasks.map(t => `- [${t.status === "done" ? "x" : " "}] ${t.description}`).join("\n")}` : "No plan saved yet.");
+        const mark = (status: string) => status === "done" ? "x" : status === "dropped" ? "-" : " ";
+        say(run?.plan ? `**GVS plan**\n\n${run.plan}\n\n${run.tasks.map(t => `- [${mark(t.status)}] ${t.description}${t.attempts ? ` (attempts: ${t.attempts})` : ""}`).join("\n")}` : "No plan saved yet.");
         return;
       }
       if (text === "cancel") {
@@ -79,11 +85,13 @@ export default function gvsExtension(pi: ExtensionAPI) {
           if (!modelRuntime.getModel(model.provider, model.id)) throw new Error("Selected model is not available in stored Pi configuration. Configure it in Pi models.json first.");
           const run = await workflow({ cwd: ctx.cwd, goal: text === "resume" ? undefined : text,
             config, signal: controller.signal,
-            worker: createPiWorker({ cwd: ctx.cwd, model, thinkingLevel: ctx.thinkingLevel, modelRuntime }),
+            worker: createPiWorker({ cwd: ctx.cwd, model, thinkingLevel: ctx.thinkingLevel, modelRuntime, config }),
             onReport: (role, report) => {
-              const tasks = report.tasks?.map((task, index) => `${index + 1}. ${task}`).join("\n");
+              const label = report.verdict ? `**GVS ${role} result: ${report.verdict}**` : `**GVS ${role} result**`;
+              const listed = [...(report.tasks ?? []), ...(report.newTasks ?? [])].map((task, index) => `${index + 1}. ${task}`).join("\n");
+              const curated = report.taskUpdates?.map(update => `- ${update.id}: ${update.status}`).join("\n");
               const notes = report.notes && report.notes !== report.summary ? report.notes : undefined;
-              say([`**GVS ${role} result**`, report.summary, tasks, notes].filter(Boolean).join("\n\n"));
+              say([label, report.summary, listed, curated, notes].filter(Boolean).join("\n\n"));
             },
             onProgress: (progress) => {
               // One keyed widget is replaced in place for phase/tool/check updates.

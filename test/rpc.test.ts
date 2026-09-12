@@ -65,12 +65,16 @@ test("/gvs completes a real file edit and verification through Pi RPC using a lo
       const input = JSON.parse(body) as { messages: { role: string; content: string | { type: string; text?: string }[] }[] };
       const contentText = (content: typeof input.messages[number]["content"]) => typeof content === "string" ? content : content.map(p => p.text ?? "").join("\n");
       const system = input.messages.filter(m => m.role === "system" || m.role === "developer").map(m => contentText(m.content)).join("\n");
-      const role = system.includes("propose a concise plan") ? "plan" : system.includes("Explore distinct approaches") ? "ideate" : system.includes("Select ONE next task") ? "manage" : "work";
+      const role = system.includes("propose a concise plan") ? "plan" : system.includes("Explore distinct approaches") ? "ideate"
+        : system.includes("First curate the task list") ? "manage" : system.includes("Independently judge") ? "review"
+        : system.includes("write a handoff") ? "finalize" : "work";
       requests.push(role);
       const data = JSON.parse(contentText(input.messages.find(m => m.role === "user")!.content)) as { step: number };
       const report = role === "plan" ? { summary: "Create feature file", tasks: ["Create feature.txt"] }
         : role === "ideate" ? { summary: "Use a text file", notes: "Write exactly working" }
-        : role === "manage" ? data.step ? { summary: "File implemented", decision: "done" } : { summary: "Write file", decision: "work", taskId: "t1" }
+        : role === "review" ? { summary: "feature.txt holds the requested content", verdict: "pass" }
+        : role === "finalize" ? { summary: "Nothing left outstanding" }
+        : role === "manage" ? data.step ? { summary: "File implemented", decision: "done", taskUpdates: [{ id: "t1", status: "done" }] } : { summary: "Write file", decision: "work", taskId: "t1" }
         : { summary: "Created feature.txt", notes: "File is ready for checks" };
       const calls: { name: string; arguments: object }[] = role === "work" ? [{ name: "write", arguments: { path: "feature.txt", content: "working" } }] : [];
       calls.push({ name: "gvs_report", arguments: report });
@@ -120,7 +124,9 @@ test("/gvs completes a real file edit and verification through Pi RPC using a lo
     const ledger = JSON.parse(await readFile(join(cwd, ".pi", "gvs", "run.json"), "utf8"));
     assert.equal(ledger.status, "completed");
     assert.equal(ledger.checks[0].passed, true);
-    assert.deepEqual(requests, ["plan", "ideate", "manage", "work", "manage"]);
+    assert.deepEqual(requests, ["plan", "ideate", "manage", "work", "manage", "review"]);
+    assert.match(output, /GVS review result: pass/);
+    assert.equal(ledger.tasks[0].status, "done");
   } finally {
     child.kill();
     await new Promise<void>(resolve => { if (child.exitCode !== null) resolve(); else child.once("close", () => resolve()); });
